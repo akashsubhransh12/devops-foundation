@@ -1,0 +1,14 @@
+name: Day4_Automation_Check
+
+on: [push]   # Triggered whenever you push code to GitHub
+
+jobs:
+  test_script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Run our Setup Script
+        run: bash setup_server.sh
