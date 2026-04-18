@@ -1,0 +1,44 @@
+# ============================================================
+# STAGE 1: The Builder
+# This stage installs all dependencies.
+# It will NOT be included in the final image.
+# ============================================================
+FROM python:3.9-slim AS builder
+
+WORKDIR /build
+
+# Copy only requirements first (leverages Docker layer caching)
+COPY requirements.txt .
+
+# Install packages to the user-local path (--user avoids needing root)
+RUN pip install --user -r requirements.txt
+
+# ============================================================
+# STAGE 2: The Final Runtime Image
+# This is the ONLY part that gets deployed to production.
+# It is lean, clean, and contains no build tools or caches.
+# ============================================================
+FROM python:3.9-slim
+
+# Create a non-root user for security
+RUN useradd -m myuser
+
+WORKDIR /app
+
+# Copy ONLY the installed packages from the builder stage
+# This is the magic of multi-stage builds!
+COPY --from=builder /root/.local /home/myuser/.local
+
+# Copy the application source code
+COPY . .
+
+# Give ownership to non-root user
+RUN chown -R myuser:myuser /app
+
+# Ensure pip-installed binaries are on the PATH
+ENV PATH=/home/myuser/.local/bin:$PATH
+
+# Switch to non-root user
+USER myuser
+
+CMD ["python", "app.py"]
