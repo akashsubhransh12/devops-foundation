@@ -2,7 +2,7 @@
 - name: Configure MeetMux Web Servers
   hosts: localhost
   connection: local
-  become: yes
+  become: no
 
   tasks:
     - name: Ensure Nginx is installed
