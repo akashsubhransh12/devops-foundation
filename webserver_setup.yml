@@ -1,0 +1,24 @@
+---
+- name: Configure MeetMux Web Servers
+  hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx
+        state: present
+
+    - name: Create a custom landing page for MeetMux
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <h1>Welcome to MeetMux Production</h1>
+          <p>Server Configured by Ansible Automation</p>
+
+    - name: Ensure Nginx is running and enabled
+      service:
+        name: nginx
+        state: started
+        enabled: yes
