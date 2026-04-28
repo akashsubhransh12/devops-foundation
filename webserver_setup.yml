@@ -4,21 +4,60 @@
   connection: local
   become: no
 
-  tasks:
-    - name: Ensure Nginx is installed
-      apt:
-        name: nginx
-        state: present
+  vars:
+    meetmux_version: "1.0.0"
+    web_root: "/tmp/meetmux"
+    server_port: 8080
 
-    - name: Create a custom landing page for MeetMux
+  tasks:
+    - name: Ensure MeetMux web root directory exists
+      file:
+        path: "{{ web_root }}"
+        state: directory
+        mode: '0755'
+
+    - name: Create MeetMux landing page
       copy:
-        dest: /var/www/html/index.html
+        dest: "{{ web_root }}/index.html"
         content: |
           <h1>Welcome to MeetMux Production</h1>
           <p>Server Configured by Ansible Automation</p>
+          <p>Version: {{ meetmux_version }}</p>
+          <p>Deployed at: {{ ansible_date_time.iso8601 }}</p>
 
-    - name: Ensure Nginx is running and enabled
-      service:
-        name: nginx
-        state: started
-        enabled: yes
+    - name: Create MeetMux server config file
+      copy:
+        dest: "{{ web_root }}/server.conf"
+        content: |
+          server_name=meetmux-prod
+          port={{ server_port }}
+          version={{ meetmux_version }}
+          environment=production
+          managed_by=ansible
+
+    - name: Verify landing page exists and show content
+      command: cat "{{ web_root }}/index.html"
+      register: page_output
+      changed_when: false
+
+    - name: Display landing page content
+      debug:
+        msg: "{{ page_output.stdout_lines }}"
+
+    - name: Verify server config exists and show content
+      command: cat "{{ web_root }}/server.conf"
+      register: config_output
+      changed_when: false
+
+    - name: Display server config
+      debug:
+        msg: "{{ config_output.stdout_lines }}"
+
+    - name: Gather and display system information
+      debug:
+        msg:
+          - "Hostname: {{ ansible_hostname }}"
+          - "OS: {{ ansible_system }}"
+          - "Python: {{ ansible_python_version }}"
+          - "MeetMux Version: {{ meetmux_version }}"
+          - "Web Root: {{ web_root }}"
