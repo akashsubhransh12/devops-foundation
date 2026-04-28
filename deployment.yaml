@@ -1,0 +1,15 @@
+# A typical Deployment Configuration
+metadata:
+  name: web-server-alpha
+  version: 1.0.2
+
+specification:
+  replicas: 3        # Tells the cloud to run 3 copies of your app
+  environment: production
+  ports:
+    - 80
+    - 443
+
+resources:
+  cpu: "500m"
+  memory: "256Mi"

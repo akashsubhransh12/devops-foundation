@@ -1,0 +1,29 @@
+services:
+  web:
+    image: nginx
+    ports:
+      - "3000:80"
+    networks:
+      - frontend
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mongo:6.0
+    container_name: my-db
+    volumes:
+      - db-data:/data/db
+    networks:
+      - frontend
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: appdb
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  frontend:
+    driver: bridge
